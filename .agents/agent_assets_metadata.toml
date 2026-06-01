@@ -1,0 +1,32 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "0qwp1-HexGBVXBbn0k0jh"
+uri = "file://artifacts/furniture-store/public/images/hero.png"
+type = "image"
+title = "Luxury classic furniture showroom hero"
+
+[[generated]]
+id = "dNqvsh9ugIaJQ-R1pd0p8"
+uri = "file://artifacts/furniture-store/public/images/product-bed.png"
+type = "image"
+title = "Luxury king size bed"
+
+[[generated]]
+id = "gqgk7-BCS9nrogS-OCIcn"
+uri = "file://artifacts/furniture-store/public/images/product-sofa.png"
+type = "image"
+title = "Elegant Chesterfield sofa"
+
+[[generated]]
+id = "L6KOk-07T_1RfgehaeDQx"
+uri = "file://artifacts/furniture-store/public/images/product-dining.png"
+type = "image"
+title = "Large classic dining table"
+
+[[generated]]
+id = "Uv2GJIniEPNDDhMoyvVma"
+uri = "file://artifacts/furniture-store/public/images/portfolio-1.png"
+type = "image"
+title = "Luxury furniture portfolio"
