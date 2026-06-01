@@ -2,13 +2,24 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
-import esbuildPluginPino from "esbuild-plugin-pino";
 import { rm } from "node:fs/promises";
 
-// Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+
+// Externalize all npm packages so they load from node_modules at runtime.
+// @workspace/* libs stay bundled because they are TypeScript source files
+// with no compiled JS output — Node cannot run them directly.
+const externalizeNpmPackages = {
+  name: "externalize-npm",
+  setup(build) {
+    build.onResolve({ filter: /^[^./]/ }, (args) => {
+      if (args.path.startsWith("@workspace/")) return null; // keep bundled
+      return { path: args.path, external: true };
+    });
+  },
+};
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
@@ -22,33 +33,8 @@ async function buildAll() {
     outdir: distDir,
     outExtension: { ".js": ".mjs" },
     logLevel: "info",
-    // Suppress the cosmetic >1mb bundle-size warning.
-    // The bundle is large because pino and its transitive deps must be inlined
-    // (pino-plugin handles worker threads), and drizzle/pg are included too.
-    // This is intentional and the server runs correctly.
-    logOverride: { "commonjs-variable-in-esm": "silent" },
-    minify: true,
-    // Only truly un-bundleable packages (native addons, optional peers)
-    external: [
-      "*.node",
-      "sharp",
-      "better-sqlite3",
-      "sqlite3",
-      "canvas",
-      "bcrypt",
-      "argon2",
-      "fsevents",
-      "re2",
-      "pg-native",
-      "bufferutil",
-      "utf-8-validate",
-      "oracledb",
-      "mongodb-client-encryption",
-    ],
     sourcemap: "linked",
-    plugins: [
-      esbuildPluginPino({ transports: ["pino-pretty"] }),
-    ],
+    plugins: [externalizeNpmPackages],
     banner: {
       js: `import { createRequire as __bannerCrReq } from 'node:module';
 import __bannerPath from 'node:path';
@@ -57,7 +43,7 @@ import __bannerUrl from 'node:url';
 globalThis.require = __bannerCrReq(import.meta.url);
 globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
 globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
-    `,
+`,
     },
   });
 }
